@@ -1,6 +1,7 @@
 package test
 
 import (
+	"errors"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/mlambda-net/net/pkg/core"
 	"github.com/mlambda-net/net/pkg/local"
@@ -37,6 +38,22 @@ func Test_Client_Future_Failure(t *testing.T) {
 			})
 		}
 	}))
+	s.Start(":9001")
+	c := local.NewClient(":9001")
+	sp := c.Spawn("fail")
+	r, e := sp.Future(&core.Response{Message: "Should fail"}, 5*time.Second).Result()
+	assert.Nil(t, r)
+	assert.Error(t, e)
+	s.Stop()
+}
+
+func Test_Client_Future_Error(t *testing.T) {
+	s := remote.NewServer()
+
+	s.Register("fail", actor.PropsFromFunc(func(ctx actor.Context) {
+		ctx.Respond(errors.New("this is a failure"))
+	}))
+
 	s.Start(":9001")
 	c := local.NewClient(":9001")
 	sp := c.Spawn("fail")

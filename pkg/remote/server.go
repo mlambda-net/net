@@ -7,7 +7,6 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"sync"
 )
 
 type Server interface {
@@ -17,38 +16,47 @@ type Server interface {
 }
 
 type server struct {
-	wg    *sync.WaitGroup
-	props map[string]*actor.Props
+	props    map[string]*actor.Props
+	srv      *grpc.Server
+	lis      net.Listener
+	register bool
 }
 
 func (s *server) Register(kind string, producer *actor.Props) {
 	s.props[kind] = producer
 }
 
-func (s server) Start(address string) {
+func (s *server) Start(address string) {
+	lis, err := net.Listen("tcp", address)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	} else {
+		s.lis = lis
+		s.srv = grpc.NewServer()
+		go func() {
 
-	go func() {
-		lis, err := net.Listen("tcp", address)
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-			s.wg.Done()
-		}
-		srv := grpc.NewServer()
-		core.RegisterConnectorServer(srv, &service{ctx: actor.EmptyRootContext, props: s.props, pids: make(map[string]*actor.PID), serialize: common.NewSerializer()})
-		if err := srv.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-			s.wg.Done()
-		}
-		s.wg.Wait()
-	}()
+			if !s.register {
+				core.RegisterConnectorServer(s.srv, &service{ctx: actor.EmptyRootContext, props: s.props, pids: make(map[string]*actor.PID), serialize: common.NewSerializer()})
+				s.register = true
+			}
+			if err := s.srv.Serve(s.lis); err != nil {
+				log.Fatalf("failed to serve: %v", err)
+			}
+		}()
+	}
 }
 
-func (s server) Stop() {
-	s.wg.Done()
+func (s *server) Stop() {
+
+	if s.srv != nil {
+		s.srv.Stop()
+	}
+	if s.lis != nil {
+		_ = s.lis.Close()
+	}
+
 }
 
 func NewServer() Server {
-	wg := new(sync.WaitGroup)
-	wg.Add(1)
-	return &server{wg: wg, props: make(map[string]*actor.Props)}
+	return &server{register: false, props: make(map[string]*actor.Props)}
 }

@@ -18,10 +18,10 @@ func Test_Client_Future_Success(t *testing.T) {
 
 	c := local.NewClient(":9091")
 	sp := c.Spawn("dummy")
-	r, _ := sp.Future(&core.Response{Message: "1000"}, 5*time.Second).Result()
+	r, e := sp.Future(&core.Response{Message: "1000"}, 5*time.Second).Result()
 	d := r.(*core.Response)
 	assert.Equal(t, "Good 1000", d.Message)
-
+	assert.Nil(t, e)
 	s.Stop()
 }
 
@@ -63,5 +63,19 @@ func Test_Client_Send_Success(t *testing.T) {
 	c := local.NewClient(":9004")
 	sp := c.Spawn("dummy")
 	sp.Send(&core.Response{Message: "1000"})
+	s.Stop()
+}
+
+func Test_Client_Reconnecting(t *testing.T) {
+	s := remote.NewServer()
+	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }))
+	s.Start(":9006")
+	c := local.NewClient(":9006")
+	sp := c.Spawn("dummy")
+	sp.Send(&core.Response{Message: "1000"})
+	time.Sleep(1000)
+	s.Stop()
+	s.Start(":9006")
+	_, _ = sp.Future(&core.Response{Message: "1000"}, 5*time.Second).Result()
 	s.Stop()
 }

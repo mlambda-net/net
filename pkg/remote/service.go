@@ -52,8 +52,7 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 			}, nil
 		}
 
-		err := v.(error)
-		if err != nil {
+		if err, ok := v.(error); ok {
 			return &core.Response{
 				Status:  500,
 				Message: err.Error(),

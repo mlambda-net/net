@@ -14,9 +14,9 @@ import (
 func Test_Client_Future_Success(t *testing.T) {
 	s := remote.NewServer()
 	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }))
-	s.Start(":9001")
+	s.Start(":9091")
 
-	c := local.NewClient(":9001")
+	c := local.NewClient(":9091")
 	sp := c.Spawn("dummy")
 	r, _ := sp.Future(&core.Response{Message: "1000"}, 5*time.Second).Result()
 	d := r.(*core.Response)
@@ -38,12 +38,12 @@ func Test_Client_Future_Failure(t *testing.T) {
 			})
 		}
 	}))
-	s.Start(":9001")
-	c := local.NewClient(":9001")
+	s.Start(":9002")
+	c := local.NewClient(":9002")
 	sp := c.Spawn("fail")
 	r, e := sp.Future(&core.Response{Message: "Should fail"}, 5*time.Second).Result()
-	assert.Nil(t, r)
-	assert.Error(t, e)
+	assert.Nil(t, e)
+	assert.Equal(t, "Error not so good", r.(*core.Response).Message)
 	s.Stop()
 }
 
@@ -54,8 +54,8 @@ func Test_Client_Future_Error(t *testing.T) {
 		ctx.Respond(errors.New("this is a failure"))
 	}))
 
-	s.Start(":9001")
-	c := local.NewClient(":9001")
+	s.Start(":9003")
+	c := local.NewClient(":9003")
 	sp := c.Spawn("fail")
 	r, e := sp.Future(&core.Response{Message: "Should fail"}, 5*time.Second).Result()
 	assert.Nil(t, r)
@@ -66,8 +66,8 @@ func Test_Client_Future_Error(t *testing.T) {
 func Test_Client_Send_Success(t *testing.T) {
 	s := remote.NewServer()
 	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }))
-	s.Start(":9001")
-	c := local.NewClient(":9001")
+	s.Start(":9004")
+	c := local.NewClient(":9004")
 	sp := c.Spawn("dummy")
 	sp.Send(&core.Response{Message: "1000"})
 	s.Stop()

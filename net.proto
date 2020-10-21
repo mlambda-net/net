@@ -1,0 +1,19 @@
+syntax = "proto3";
+package core;
+
+message Request {
+  string Type = 1;
+  string Kind = 2;
+  bytes Payload = 3;
+}
+
+message Response {
+  int32 Status = 1;
+  bytes Payload = 2;
+  string Message = 3;
+}
+
+
+service Connector {
+  rpc Call(Request) returns (Response) {}
+}

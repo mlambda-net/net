@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/mlambda-net/net/pkg/common"
+	"log"
 	"reflect"
 	"strings"
 	"time"
@@ -19,6 +20,12 @@ type service struct {
 }
 
 func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, error) {
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("panic occurred:", err)
+		}
+	}()
 
 	message, err := s.serialize.Deserialize(r.Type, r.Payload)
 	if err != nil {

@@ -29,21 +29,14 @@ func Test_Client_Future_Failure(t *testing.T) {
 	s := remote.NewServer()
 
 	s.Register("fail", actor.PropsFromFunc(func(ctx actor.Context) {
-		switch msg := ctx.Message().(type) {
-		case *core.Response:
-			ctx.Respond(&core.Response{
-				Status:  500,
-				Payload: msg.Payload,
-				Message: "Error not so good",
-			})
-		}
+		ctx.Respond(errors.New("fail"))
 	}))
 	s.Start(":9002")
 	c := local.NewClient(":9002")
 	sp := c.Spawn("fail")
 	r, e := sp.Future(&core.Response{Message: "Should fail"}, 5*time.Second).Result()
-	assert.Nil(t, e)
-	assert.Equal(t, "Error not so good", r.(*core.Response).Message)
+	assert.Nil(t, r)
+	assert.Error(t, e)
 	s.Stop()
 }
 

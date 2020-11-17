@@ -9,7 +9,7 @@ LINTER=golangci-lint
 all: test build
 
 generate:
-	protoc -I=. -I=${GOPATH}/src --gogoslick_out=./pkg/core --go-grpc_out=./pkg/core   net.proto
+	protoc -I=. -I=${GOPATH}/src --gogoslick_out=./pkg/core --go-grpc_out=./pkg/core  net.proto
 
 test:
 	$(GOTEST) ./... -v

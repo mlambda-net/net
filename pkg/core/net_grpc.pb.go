@@ -61,7 +61,7 @@ type UnsafeConnectorServer interface {
 	mustEmbedUnimplementedConnectorServer()
 }
 
-func RegisterConnectorServer(s *grpc.Server, srv ConnectorServer) {
+func RegisterConnectorServer(s grpc.ServiceRegistrar, srv ConnectorServer) {
 	s.RegisterService(&_Connector_serviceDesc, srv)
 }
 

@@ -11,14 +11,14 @@ type Metric interface {
 
 type metric struct {
 	recorders map[string]Recorder
-	config    Configuration
+	config    *Configuration
 }
 
 func (m *metric) AddMetric(path string, name string) {
 	m.recorders[path] = NewRecorder(m.config, name)
 }
 
-func NewMetric(config Configuration) Metric {
+func NewMetric(config *Configuration) Metric {
 	return &metric{
 		config: config,
 		recorders: make(map[string]Recorder),

@@ -22,7 +22,7 @@ type route struct {
 
 type router struct {
   routes []route
-  config metrics.Configuration
+  config *metrics.Configuration
 }
 
 func (r *router) GetRouter() *mux.Router {
@@ -53,6 +53,6 @@ func (r *router) AddRoute(name string, path string, isSecure bool, method string
   })
 }
 
-func NewRoute(config metrics.Configuration ) Route {
+func NewRoute(config *metrics.Configuration ) Route {
   return &router{ config : config }
 }

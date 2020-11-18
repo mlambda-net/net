@@ -13,7 +13,7 @@ import (
 func Test_ApiLoad(t *testing.T) {
 
 	api := NewApi(8080, 9090)
-	api.Metrics(func(c metrics.Configuration) {
+	api.Metrics(func(c *metrics.Configuration) {
 		c.App.Name = "app"
 		c.App.Env = "dev"
 		c.App.Version = "1.0.0"

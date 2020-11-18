@@ -13,7 +13,7 @@ import (
 
 type Api interface {
   Register(f func(s Route))
-	Metrics(f func(c metrics.Configuration))
+	Metrics(f func(c *metrics.Configuration))
 	Checks(options ...healthcheck.Option)
 	Start()
 	Wait()
@@ -22,7 +22,7 @@ type Api interface {
 type api struct {
   port   int32
   health int32
-  config metrics.Configuration
+  config *metrics.Configuration
 
   options []healthcheck.Option
   sem     chan int
@@ -62,8 +62,8 @@ func (a *api) Start() {
 
 }
 
-func (a *api) Metrics(f func(c metrics.Configuration)) {
-	a.config = metrics.Configuration{}
+func (a *api) Metrics(f func(c *metrics.Configuration)) {
+	a.config = &metrics.Configuration{}
 	f(a.config)
 }
 

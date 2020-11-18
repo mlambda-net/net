@@ -25,7 +25,7 @@ type recorder struct {
 
 func (r *recorder)  createHistogram(name string) {
 
-	buckets := []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 20}
+	buckets := []float64{50, 100, 250, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000}
 	histo := prometheus.NewHistogram(prometheus.HistogramOpts{
 		Namespace:   r.namespace,
 		Subsystem:   r.subSystem,
@@ -80,7 +80,7 @@ func (r *recorder) Stop() {
 	r.gauge.Dec()
 }
 
-func NewRecorder(config Configuration, name string) Recorder {
+func NewRecorder(config *Configuration, name string) Recorder {
 	r := &recorder{namespace: config.Metric.Namespace,
 		subSystem: config.Metric.SubSystem,
 		version: config.App.Version,

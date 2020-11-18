@@ -36,7 +36,7 @@ func (r *recorder)  createHistogram(name string) {
 
 	r.time = histo
 
-	prometheus.Register(histo)
+	_ = prometheus.Register(histo)
 
 }
 
@@ -51,7 +51,7 @@ func (r * recorder) createCounter(name string)  {
 	} )
 
 	r.counter = counter
-	prometheus.Register(counter)
+	_ = prometheus.Register(counter)
 }
 
 func (r * recorder) createGauge(name string)  {
@@ -63,7 +63,7 @@ func (r * recorder) createGauge(name string)  {
 	})
 	r.gauge = gauge
 
-	prometheus.Register(gauge)
+	_ = prometheus.Register(gauge)
 
 }
 

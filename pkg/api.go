@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/etherlabsio/healthcheck"
 	"github.com/gorilla/mux"
-	"github.com/mlambda-net/net/pkg/health"
+  "github.com/mlambda-net/net/pkg/common"
+  "github.com/mlambda-net/net/pkg/health"
 	"github.com/mlambda-net/net/pkg/metrics"
 	"github.com/mlambda-net/net/pkg/security"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -14,29 +15,29 @@ import (
 )
 
 type Api interface {
+  Register(f func(s common.Route))
 	Metrics(f func(c metrics.Configuration))
 	Checks(options ...healthcheck.Option)
-	RegisterAuth(f func(r *mux.Router))
-	RegisterWithAuth(f func(r *mux.Router))
 	Start()
 	Wait()
-	Trace(route string, name string)
 }
 
 type api struct {
-	port    int32
-	health  int32
-	config  metrics.Configuration
-	secure  *mux.Router
-	routes  *mux.Router
-	options []healthcheck.Option
-	sem     chan int
-	maps    map[string]string
+  port   int32
+  health int32
+  config metrics.Configuration
+
+  options []healthcheck.Option
+  sem     chan int
+  maps    map[string]string
+  routes  common.Route
 }
 
-func (a api) Trace(route string, name string) {
-	a.maps[route] = name
+func (a api) Register(f func(s common.Route)) {
+  a.routes = common.NewRoutes()
 }
+
+
 
 func (a api) Wait() {
 	<-a.sem
@@ -62,14 +63,6 @@ func (a api) Start() {
 		a.sem <- 1
 	}()
 
-}
-
-func (a api) RegisterAuth(f func(r *mux.Router)) {
-	f(a.secure)
-}
-
-func (a api) RegisterWithAuth(f func(r *mux.Router)) {
-	f(a.routes)
 }
 
 func (a api) Metrics(f func(c metrics.Configuration)) {

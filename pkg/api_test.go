@@ -3,7 +3,8 @@ package pkg
 import (
 	"github.com/etherlabsio/healthcheck"
 	"github.com/gorilla/mux"
-	"github.com/mlambda-net/net/pkg/metrics"
+  "github.com/mlambda-net/net/pkg/common"
+  "github.com/mlambda-net/net/pkg/metrics"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -21,20 +22,20 @@ func Test_ApiLoad(t *testing.T){
 		c.Metric.Namespace = "ns"
 		c.Metric.SubSystem = "ss"
 	})
-	api.Trace("/api/a", "a")
-	api.Trace("/api/b", "b")
 
-	api.RegisterAuth(func(r *mux.Router) {
-		r.HandleFunc("/api/b", func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(200)
-		})
-	})
 
-	api.RegisterWithAuth(func(r *mux.Router) {
-		r.HandleFunc("/api/b", func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(200)
-		})
-	})
+
+	api.Register(func(r common.Route) {
+	 r.AddRoute("a", "/api/a",  true, func(w http.ResponseWriter, _ *http.Request) {
+     w.WriteHeader(200)
+   } )
+
+	 r.AddRoute("b", "/api/b", false, func(w http.ResponseWriter, _ *http.Request) {
+     w.WriteHeader(200)
+   } )
+
+  })
+
 	api.Checks( healthcheck.WithTimeout(5*time.Second) )
 	api.Start()
 

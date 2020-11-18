@@ -32,9 +32,9 @@ func (r *router) GetRouter() *mux.Router {
   for _, v := range r.routes {
     m.AddMetric(v.path, v.name)
     if v.isSecure {
-      router.Handle(v.path, m.Trace(security.Authenticate(http.HandlerFunc(v.handler)))).Methods(v.method)
+      router.Handle(v.path, m.Trace(security.Cors(security.Authenticate(http.HandlerFunc(v.handler))))).Methods(v.method)
     } else {
-      router.Handle(v.path, m.Trace(http.HandlerFunc(v.handler))).Methods(v.method)
+      router.Handle(v.path, m.Trace(security.Cors(http.HandlerFunc(v.handler)))).Methods(v.method)
     }
   }
   return router

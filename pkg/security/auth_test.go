@@ -19,7 +19,7 @@ func Test_Auth( t *testing.T) {
 	}))
 
 	handler.ServeHTTP(rr,req)
-	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, 401, rr.Code)
 }
 
 func Test_Fail(t *testing.T)  {

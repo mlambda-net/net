@@ -1,10 +1,9 @@
-package pkg
+package net
 
 import (
 	"fmt"
 	"github.com/etherlabsio/healthcheck"
 	"github.com/gorilla/mux"
-	"github.com/mlambda-net/net/pkg/common"
 	"github.com/mlambda-net/net/pkg/health"
 	"github.com/mlambda-net/net/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -13,7 +12,7 @@ import (
 )
 
 type Api interface {
-  Register(f func(s common.Route))
+  Register(f func(s Route))
 	Metrics(f func(c metrics.Configuration))
 	Checks(options ...healthcheck.Option)
 	Start()
@@ -27,14 +26,14 @@ type api struct {
 
   options []healthcheck.Option
   sem     chan int
-  maps    map[string]string
-  routes  common.Route
+  maps   map[string]string
+  routes Route
 }
 
 
 
-func (a *api) Register(f func(s common.Route)) {
-	a.routes = common.NewRoute(a.config)
+func (a *api) Register(f func(s Route)) {
+	a.routes = NewRoute(a.config)
 	f(a.routes)
 }
 
@@ -72,7 +71,7 @@ func (a *api) Checks(options ...healthcheck.Option) {
 	a.options = options
 }
 
-func NewApi(port int32, health int32) Api  {
+func NewApi(port int32, health int32) Api {
 	return &api{
 		port: port,
 		health: health,

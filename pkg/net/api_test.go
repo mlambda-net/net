@@ -1,9 +1,8 @@
-package pkg
+package net
 
 import (
 	"github.com/etherlabsio/healthcheck"
-  	"github.com/mlambda-net/net/pkg/common"
-  	"github.com/mlambda-net/net/pkg/metrics"
+	"github.com/mlambda-net/net/pkg/metrics"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -22,12 +21,12 @@ func Test_ApiLoad(t *testing.T) {
 		c.Metric.SubSystem = "ss"
 	})
 
-	api.Register(func(r common.Route) {
-		r.AddRoute("a", "/api/a", true, func(w http.ResponseWriter, _ *http.Request) {
+	api.Register(func(r Route) {
+		r.AddRoute("a", "/api/a", true, "GET", func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(200)
 		})
 
-		r.AddRoute("b", "/api/b", false, func(w http.ResponseWriter, _ *http.Request) {
+		r.AddRoute("b", "/api/b", false,  "GET", func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(200)
 		})
 

@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"github.com/etherlabsio/healthcheck"
 	"github.com/gorilla/mux"
-  "github.com/mlambda-net/net/pkg/common"
-  "github.com/mlambda-net/net/pkg/health"
+	"github.com/mlambda-net/net/pkg/common"
+	"github.com/mlambda-net/net/pkg/health"
 	"github.com/mlambda-net/net/pkg/metrics"
-	"github.com/mlambda-net/net/pkg/security"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/urfave/negroni"
 	"log"
 	"net/http"
 )
@@ -33,17 +31,18 @@ type api struct {
   routes  common.Route
 }
 
-func (a api) Register(f func(s common.Route)) {
-  a.routes = common.NewRoutes()
+
+
+func (a *api) Register(f func(s common.Route)) {
+	a.routes = common.NewRoute(a.config)
+	f(a.routes)
 }
 
-
-
-func (a api) Wait() {
+func (a *api) Wait() {
 	<-a.sem
 }
 
-func (a api) Start() {
+func (a *api) Start() {
 
 	a.sem = make(chan int, 2)
 
@@ -57,29 +56,27 @@ func (a api) Start() {
 	}()
 
 	go func() {
-		m := metrics.NewMetric(a.config, a.maps)
-		an := negroni.New(negroni.Wrap(m.Trace(security.Authenticate(a.secure))), negroni.Wrap(m.Trace(a.routes)))
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.port), an))
+		routes := a.routes.GetRouter()
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.port), routes))
 		a.sem <- 1
 	}()
 
 }
 
-func (a api) Metrics(f func(c metrics.Configuration)) {
+func (a *api) Metrics(f func(c metrics.Configuration)) {
 	a.config = metrics.Configuration{}
 	f(a.config)
 }
 
-func (a api) Checks(options ...healthcheck.Option) {
+func (a *api) Checks(options ...healthcheck.Option) {
 	a.options = options
 }
 
 func NewApi(port int32, health int32) Api  {
-	return api{
+	return &api{
 		port: port,
 		health: health,
-		secure : mux.NewRouter().StrictSlash(true),
-		routes : mux.NewRouter().StrictSlash(true),
 		maps: make(map[string]string),
+
 	}
 }

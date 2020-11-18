@@ -11,6 +11,5 @@ require (
 	github.com/mlambda-net/monads v1.0.3
 	github.com/prometheus/client_golang v1.8.0
 	github.com/stretchr/testify v1.6.1
-	github.com/urfave/negroni v1.0.0
 	google.golang.org/grpc v1.33.0
 )

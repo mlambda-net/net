@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -28,7 +29,7 @@ func NewMetric(config *Configuration) Metric {
 
 func (m *metric) Trace(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rc := m.recorders[r.RequestURI]
+		rc := m.recorders[fmt.Sprintf("%s/%s", r.RequestURI, r.Method)]
 		if rc != nil {
 			rc.Start()
 			next.ServeHTTP(w, r)

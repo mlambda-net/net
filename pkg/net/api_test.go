@@ -27,6 +27,7 @@ func Test_ApiLoad(t *testing.T) {
 		})
 
 		r.AddRoute("b", "/api/b", false,  "GET", func(w http.ResponseWriter, _ *http.Request) {
+			time.Sleep(100 * time.Millisecond)
 			w.WriteHeader(200)
 		})
 

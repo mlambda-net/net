@@ -1,7 +1,8 @@
 package net
 
 import (
-	"github.com/gorilla/mux"
+  "fmt"
+  "github.com/gorilla/mux"
   "github.com/mlambda-net/net/pkg/metrics"
   "github.com/mlambda-net/net/pkg/security"
   "net/http"
@@ -30,7 +31,7 @@ func (r *router) GetRouter() *mux.Router {
   m := metrics.NewMetric(r.config)
 
   for _, v := range r.routes {
-    m.AddMetric(v.path, v.name)
+    m.AddMetric(fmt.Sprintf("%s/%s", v.path, v.method), v.name)
     if v.isSecure {
       router.Handle(v.path, m.Trace(security.Cors(security.Authenticate(http.HandlerFunc(v.handler))))).Methods(v.method)
     } else {

@@ -74,9 +74,9 @@ func (r *recorder) Start() {
 }
 
 func (r *recorder) Stop() {
-	r.start = time.Now()
 	duration := time.Since(r.start)
-	r.time.Observe(float64(duration.Microseconds()))
+	elapsed := float64(duration.Milliseconds())
+	r.time.Observe(elapsed)
 	r.gauge.Dec()
 }
 

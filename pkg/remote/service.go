@@ -65,10 +65,10 @@ type service struct {
 	core.UnimplementedConnectorServer
 	serialize common.Serializer
 	props     map[string]*actor.Props
-	ctx       *actor.RootContext
 	pids      map[string]*actor.PID
 	secure    map[string]*secure
 	status    []func(status *Status)
+	system    *actor.ActorSystem
 }
 
 func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, error) {
@@ -90,7 +90,7 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 
 	if _, ok := s.pids[r.Kind]; !ok {
 		if prop, ok := s.props[r.Kind]; ok {
-			pid := s.ctx.Spawn(prop)
+			pid := s.system.Root.Spawn(prop)
 			s.pids[r.Kind] = pid
 		}
 	}
@@ -107,7 +107,7 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 			}
 
 			if identity.Authenticate() {
-				return s.exec(pid, message)
+				return s.exec(pid, message, identity.GetHeaders())
 			}
 
 			return &core.Response{
@@ -116,7 +116,7 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 			}, nil
 
 		} else {
-			return s.exec(pid, message)
+			return s.exec(pid, message, map[string]string{})
 		}
 	}
 
@@ -127,8 +127,8 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 
 }
 
-func (s *service) exec(pid *actor.PID, message interface{}) (*core.Response, error) {
-	v, e := s.ctx.RequestFuture(pid, message, 10*time.Second).Result()
+func (s *service) exec(pid *actor.PID, message interface{}, headers map[string]string) (*core.Response, error) {
+	v, e := s.system.Root.RequestFuture(pid, message, 10*time.Second).Result()
 	if e != nil {
 		return &core.Response{
 			Status:  http.StatusInternalServerError,

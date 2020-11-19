@@ -7,11 +7,16 @@ import (
 
 type Identity interface {
 	Authenticate() bool
+	GetHeaders() map[string]string
 
 }
 
 type identity struct {
 	claims Claims
+}
+
+func (i identity) GetHeaders() map[string]string {
+	return i.claims.ToMap()
 }
 
 func (i identity) Authenticate() bool {

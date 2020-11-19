@@ -14,10 +14,19 @@ type Token interface {
 
 type Claims interface {
 	Get(name string) interface{}
+	ToMap() map[string]string
 }
 
 type claims struct {
 	values jwt.MapClaims
+}
+
+func (c claims) ToMap() map[string]string {
+	maps := make(map[string]string)
+	for k, v := range c.values {
+		maps[k] = fmt.Sprintf("%v", v)
+	}
+	return maps
 }
 
 func (c claims) Get(name string) interface{} {

@@ -3,7 +3,7 @@ module github.com/mlambda-net/net
 go 1.14
 
 require (
-	github.com/AsynkronIT/protoactor-go v0.0.0-20200815184336-b225d28383f2
+	github.com/AsynkronIT/protoactor-go v0.0.0-20201117200131-5ae73aa8b6fe
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/etherlabsio/healthcheck v0.0.0-20191224061800-dd3d2fd8c3f6
 	github.com/gogo/protobuf v1.3.1

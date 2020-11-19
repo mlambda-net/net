@@ -44,7 +44,7 @@ func NewClient(remote string, port string) Client {
 }
 
 func (r request) Request(data proto.Message) monad.Mono {
-	f, e := r.link.Future(data, 4*time.Second,r.token).Result()
+	f, e := r.link.Future(data, 4*time.Minute,r.token).Result()
 	if e != nil {
 		return monad.ToMono(e)
 	}

@@ -2,24 +2,33 @@ package test
 
 import (
 	"errors"
+	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/mlambda-net/net/pkg/core"
 	"github.com/mlambda-net/net/pkg/local"
 	"github.com/mlambda-net/net/pkg/net"
 	"github.com/mlambda-net/net/pkg/remote"
+	"github.com/mlambda-net/net/pkg/security"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 	"time"
 )
 
 func Test_Client_Future_Success(t *testing.T) {
 	s := remote.NewServer()
-	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }),false, []string{""})
+	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }),true, []string{""})
 	s.Start(":9091")
 
-	c := local.NewClient(":9091")
-	sp := c.Spawn("dummy")
-	r, e := sp.Future(&core.Response{Message: "1000"}, 5*time.Second,"").Result()
+	c := net.NewClient("localhost", "9091")
+	tk := security.NewToken(os.Getenv("SECRET_KEY"))
+	token, err := tk.Create(map[string]interface{}{"authorize": true})
+	assert.Nil(t, err)
+
+	dummy := c.Actor("dummy")
+	r, e := dummy.Token(fmt.Sprintf("bearer %s",token)).Request(&core.Response{Message: "1000"}).Unwrap()
+
+
 	d := r.(*core.Response)
 	assert.Equal(t, "Good 1000", d.Message)
 	assert.Nil(t, e)

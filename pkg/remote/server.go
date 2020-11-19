@@ -48,7 +48,7 @@ func (s *server) Start(address string) {
 
 			if !s.register {
 				core.RegisterConnectorServer(s.srv, &service{
-					ctx:       actor.EmptyRootContext,
+					system:       actor.NewActorSystem(),
 					status:    s.status,
 					props:     s.props,
 					secure:    s.secure,

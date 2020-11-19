@@ -12,7 +12,8 @@ import (
 type Server interface {
 	Start(address string)
 	Stop()
-	Register(kind string, producer *actor.Props)
+	Register(kind string, producer *actor.Props, isAuthenticate bool, roles []string)
+	Check(status ...func(*Status) )
 }
 
 type server struct {
@@ -20,10 +21,20 @@ type server struct {
 	srv      *grpc.Server
 	lis      net.Listener
 	register bool
+	secure   map[string]*secure
+	status   []func(*Status)
 }
 
-func (s *server) Register(kind string, producer *actor.Props) {
+func (s *server) Check(status ...func(*Status)) {
+	s.status = status
+}
+
+func (s *server) Register(kind string,producer *actor.Props, isAuthenticate bool, roles []string ) {
 	s.props[kind] = producer
+	s.secure[kind] = &secure{
+		isAuth: isAuthenticate,
+		roles: roles,
+	}
 }
 
 func (s *server) Start(address string) {
@@ -36,7 +47,13 @@ func (s *server) Start(address string) {
 		go func() {
 
 			if !s.register {
-				core.RegisterConnectorServer(s.srv, &service{ctx: actor.EmptyRootContext, props: s.props, pids: make(map[string]*actor.PID), serialize: common.NewSerializer()})
+				core.RegisterConnectorServer(s.srv, &service{
+					ctx:       actor.EmptyRootContext,
+					status:    s.status,
+					props:     s.props,
+					secure:    s.secure,
+					pids:      make(map[string]*actor.PID),
+					serialize: common.NewSerializer()})
 				s.register = true
 			}
 			if err := s.srv.Serve(s.lis); err != nil {
@@ -58,5 +75,5 @@ func (s *server) Stop() {
 }
 
 func NewServer() Server {
-	return &server{register: false, props: make(map[string]*actor.Props)}
+	return &server{register: false, props: make(map[string]*actor.Props), secure: make(map[string]*secure)}
 }

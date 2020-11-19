@@ -4,7 +4,9 @@ package core;
 message Request {
   string Type = 1;
   string Kind = 2;
-  bytes Payload = 3;
+  string Token = 3;
+  bytes Payload = 4;
+
 }
 
 message Response {
@@ -13,7 +15,21 @@ message Response {
   string Message = 3;
 }
 
+message Check {
+}
+
+message Status {
+  bool success = 1;
+  string message = 2;
+}
+
+message Error {
+  int32 status = 1;
+  string message = 2;
+}
 
 service Connector {
   rpc Call(Request) returns (Response) {}
+  rpc Live(Check) returns (Status) {}
+  rpc Health(Check) returns (Status) {}
 }

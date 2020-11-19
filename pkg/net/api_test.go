@@ -36,7 +36,15 @@ func Test_ApiLoad(t *testing.T) {
 	api.Checks(healthcheck.WithTimeout(5 * time.Second))
 	api.Start()
 
-	r, e := http.Get("http://localhost:8080/api/b")
+	f, e := http.NewRequest("OPTIONS", "http://localhost:8080/api/b",nil)
+	assert.Nil(t, e)
+
+	client := &http.Client{}
+	r, e := client.Do(f)
+	assert.Nil(t, e)
+	assert.Equal(t, "200 OK", r.Status)
+
+	r, e = http.Get("http://localhost:8080/api/b")
 	assert.Nil(t, e)
 	assert.Equal(t, "200 OK", r.Status)
 

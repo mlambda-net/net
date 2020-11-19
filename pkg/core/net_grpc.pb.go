@@ -18,6 +18,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ConnectorClient interface {
 	Call(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+	Live(ctx context.Context, in *Check, opts ...grpc.CallOption) (*Status, error)
+	Health(ctx context.Context, in *Check, opts ...grpc.CallOption) (*Status, error)
 }
 
 type connectorClient struct {
@@ -37,11 +39,31 @@ func (c *connectorClient) Call(ctx context.Context, in *Request, opts ...grpc.Ca
 	return out, nil
 }
 
+func (c *connectorClient) Live(ctx context.Context, in *Check, opts ...grpc.CallOption) (*Status, error) {
+	out := new(Status)
+	err := c.cc.Invoke(ctx, "/core.Connector/Live", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *connectorClient) Health(ctx context.Context, in *Check, opts ...grpc.CallOption) (*Status, error) {
+	out := new(Status)
+	err := c.cc.Invoke(ctx, "/core.Connector/Health", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ConnectorServer is the server API for Connector service.
 // All implementations must embed UnimplementedConnectorServer
 // for forward compatibility
 type ConnectorServer interface {
 	Call(context.Context, *Request) (*Response, error)
+	Live(context.Context, *Check) (*Status, error)
+	Health(context.Context, *Check) (*Status, error)
 	mustEmbedUnimplementedConnectorServer()
 }
 
@@ -51,6 +73,12 @@ type UnimplementedConnectorServer struct {
 
 func (UnimplementedConnectorServer) Call(context.Context, *Request) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Call not implemented")
+}
+func (UnimplementedConnectorServer) Live(context.Context, *Check) (*Status, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Live not implemented")
+}
+func (UnimplementedConnectorServer) Health(context.Context, *Check) (*Status, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Health not implemented")
 }
 func (UnimplementedConnectorServer) mustEmbedUnimplementedConnectorServer() {}
 
@@ -83,6 +111,42 @@ func _Connector_Call_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Connector_Live_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Check)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectorServer).Live(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/core.Connector/Live",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectorServer).Live(ctx, req.(*Check))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Connector_Health_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Check)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectorServer).Health(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/core.Connector/Health",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectorServer).Health(ctx, req.(*Check))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Connector_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "core.Connector",
 	HandlerType: (*ConnectorServer)(nil),
@@ -90,6 +154,14 @@ var _Connector_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Call",
 			Handler:    _Connector_Call_Handler,
+		},
+		{
+			MethodName: "Live",
+			Handler:    _Connector_Live_Handler,
+		},
+		{
+			MethodName: "Health",
+			Handler:    _Connector_Health_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

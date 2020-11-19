@@ -29,13 +29,13 @@ type router struct {
 func (r *router) GetRouter() *mux.Router {
   router := mux.NewRouter()
   m := metrics.NewMetric(r.config)
-
+  router.Use(m.Trace)
   for _, v := range r.routes {
     m.AddMetric(fmt.Sprintf("%s/%s", v.path, v.method), v.name)
     if v.isSecure {
-      router.Handle(v.path, m.Trace(security.Cors(security.Authenticate(http.HandlerFunc(v.handler))))).Methods(v.method)
+      router.Handle(v.path,security.Authenticate(http.HandlerFunc(v.handler))).Methods(v.method)
     } else {
-      router.Handle(v.path, m.Trace(security.Cors(http.HandlerFunc(v.handler)))).Methods(v.method)
+      router.Handle(v.path,http.HandlerFunc(v.handler)).Methods(v.method)
     }
   }
   return router

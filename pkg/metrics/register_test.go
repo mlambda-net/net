@@ -11,7 +11,7 @@ func Test_RegisterMetrics(t *testing.T) {
 	req, err := http.NewRequest("GET", "/api/user", nil)
 	assert.Nil(t, err)
 
-	cf := Configuration{}
+	cf := &Configuration{}
 	cf.App.Name = "sample"
 	m := metric{
 		config: cf,

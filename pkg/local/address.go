@@ -8,7 +8,6 @@ import (
 	"github.com/mlambda-net/net/pkg/common"
 	"github.com/mlambda-net/net/pkg/core"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
 	"log"
 	"reflect"
 	"strings"
@@ -16,8 +15,8 @@ import (
 )
 
 type Address interface {
-	Future(proto.Message, time.Duration) monad.Future
-	Send(proto.Message)
+	Future(proto.Message, time.Duration, string) monad.Future
+	Send(proto.Message, string)
 }
 
 type address struct {
@@ -28,7 +27,7 @@ type address struct {
 	conn       *grpc.ClientConn
 }
 
-func (a *address) Future(message proto.Message, timeout time.Duration) monad.Future {
+func (a *address) Future(message proto.Message, timeout time.Duration, token string) monad.Future {
 
 	f := monad.NewFuture()
 	go func() {
@@ -46,6 +45,7 @@ func (a *address) Future(message proto.Message, timeout time.Duration) monad.Fut
 			Type:    strings.ReplaceAll(t.String(), "*", ""),
 			Payload: data,
 			Kind:    a.kind,
+			Token: token,
 		})
 
 		if err != nil {
@@ -66,32 +66,18 @@ func (a *address) Future(message proto.Message, timeout time.Duration) monad.Fut
 	return f
 }
 
-func (a *address) Send(message proto.Message) {
-	_, e := a.Future(message, 5*time.Second).Result()
+func (a *address) Send(message proto.Message, token string) {
+	_, e := a.Future(message, 5*time.Second, token).Result()
 	if e != nil {
 		log.Fatal(e)
 	}
 }
 
-func (a *address) tryConnect() {
+func (a *address) tryConnect(conn *grpc.ClientConn,client core.ConnectorClient) {
 	if a.conn == nil {
-		conn, client := a.createConnection()
+
 		a.conn = conn
 		a.client = client
 	}
 }
 
-func (a *address) createConnection() (*grpc.ClientConn, core.ConnectorClient) {
-	ka := keepalive.ClientParameters{
-		Time:                20 * time.Second,
-		Timeout:             10 * time.Second,
-		PermitWithoutStream: true,
-	}
-	conn, err := grpc.Dial(a.server, grpc.WithInsecure(), grpc.WithBlock(),
-		grpc.WithKeepaliveParams(ka))
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	client := core.NewConnectorClient(conn)
-	return conn, client
-}

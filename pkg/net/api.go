@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mlambda-net/net/pkg/health"
 	"github.com/mlambda-net/net/pkg/metrics"
+	"github.com/mlambda-net/net/pkg/security"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
@@ -56,7 +57,7 @@ func (a *api) Start() {
 
 	go func() {
 		routes := a.routes.GetRouter()
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.port), routes))
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.port), security.Cors(routes)))
 		a.sem <- 1
 	}()
 

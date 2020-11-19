@@ -6,6 +6,7 @@ func Cors( next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		setupHeaders(&w, r)
 		if (*r).Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 

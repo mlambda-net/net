@@ -2,14 +2,64 @@ package remote
 
 import (
 	"context"
+	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/mlambda-net/net/pkg/common"
+	"github.com/mlambda-net/net/pkg/security"
 	"log"
+	"net/http"
 	"reflect"
 	"strings"
 	"time"
 )
 import "github.com/mlambda-net/net/pkg/core"
+
+type secure struct {
+
+	isAuth bool
+	roles []string
+}
+
+type result struct {
+	name    interface{}
+	success bool
+	message string
+}
+
+type Status struct {
+	results []result
+}
+
+func (s *Status) Add(success bool, name string, message string) {
+	s.results = append(s.results, result{
+		success: success,
+		name: name,
+		message: message,
+	})
+}
+
+func (s *Status) getText() string {
+	var sb strings.Builder
+	for _, s := range s.results {
+		if s.success {
+			sb.WriteString(fmt.Sprintf("%s is ok", s.name))
+		} else {
+			sb.WriteString(fmt.Sprintf("fail %s message: %s ", s.name, s.message))
+		}
+	}
+	return sb.String()
+}
+
+func (s *Status) getStatus() bool {
+	check := true
+	for _, s:= range s.results {
+		if !s.success {
+			check = false
+		}
+	}
+	return check
+
+}
 
 type service struct {
 	core.UnimplementedConnectorServer
@@ -17,6 +67,8 @@ type service struct {
 	props     map[string]*actor.Props
 	ctx       *actor.RootContext
 	pids      map[string]*actor.PID
+	secure    map[string]*secure
+	status    []func(status *Status)
 }
 
 func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, error) {
@@ -44,39 +96,77 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 	}
 
 	if pid, ok := s.pids[r.Kind]; ok {
-		v, e := s.ctx.RequestFuture(pid, message, 10*time.Second).Result()
-		if e != nil {
-			return &core.Response{
-				Status:  500,
-				Message: e.Error(),
-			}, nil
-		}
+		secure := s.secure[r.Kind]
+		if secure.isAuth {
+			identity, err := security.NewIdentity(r.Token)
+			if err != nil {
+				return &core.Response{
+					Status:  http.StatusUnauthorized,
+					Message: err.Error(),
+				}, nil
+			}
 
-		if err, ok := v.(error); ok {
-			return &core.Response{
-				Status:  500,
-				Message: err.Error(),
-			}, nil
-		}
+			if identity.Authenticate() {
+				return s.exec(pid, message)
+			}
 
-		data, err := s.serialize.Serialize(v)
-		if err != nil {
 			return &core.Response{
-				Status:  500,
-				Message: err.Error(),
+				Status:  http.StatusUnauthorized,
+				Message: "User is not authenticated",
 			}, nil
-		}
-		return &core.Response{
-			Status:  200,
-			Payload: data,
-			Message: strings.ReplaceAll(reflect.TypeOf(v).String(), "*", ""),
-		}, nil
 
+		} else {
+			return s.exec(pid, message)
+		}
 	}
 
 	return &core.Response{
-		Status:  400,
-		Message: "can not find the kind",
+		Status:  http.StatusNotFound,
+		Message: "there is not actor with that kind",
 	}, nil
 
+}
+
+func (s *service) exec(pid *actor.PID, message interface{}) (*core.Response, error) {
+	v, e := s.ctx.RequestFuture(pid, message, 10*time.Second).Result()
+	if e != nil {
+		return &core.Response{
+			Status:  http.StatusInternalServerError,
+			Message: e.Error(),
+		}, nil
+	}
+
+	if err, ok := v.(error); ok {
+		return &core.Response{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+		}, nil
+	}
+
+	data, err := s.serialize.Serialize(v)
+	if err != nil {
+		return &core.Response{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+		}, nil
+	}
+	return &core.Response{
+		Status:  http.StatusOK,
+		Payload: data,
+		Message: strings.ReplaceAll(reflect.TypeOf(v).String(), "*", ""),
+	}, nil
+}
+
+func (s* service) Live(_ context.Context, _ *core.Check) (*core.Status, error) {
+	return &core.Status{Success: true, Message: fmt.Sprintf("%d ok", http.StatusOK)}, nil
+}
+
+func (s* service) Health(_ context.Context, _ *core.Check) (*core.Status, error)  {
+	
+	status := &Status{}
+	for _, f := range s.status {
+		f(status)
+	}
+
+	return &core.Status{Success: status.getStatus(), Message: status.getText()}, nil
 }

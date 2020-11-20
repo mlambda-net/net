@@ -149,3 +149,22 @@ func Test_Client_Fail(t *testing.T) {
 	assert.Equal(t, "Token is expired", e.Error())
 }
 
+func Test_Client_Send_Done(t *testing.T) {
+	s := remote.NewServer()
+	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }),false, []string{""})
+	s.Start(":9010")
+	c := local.NewClient(":9010")
+	sp := c.Spawn("dummy")
+	sp.Send(&core.Done{},"")
+	s.Stop()
+}
+
+func Test_Client_Send_Check(t *testing.T) {
+	s := remote.NewServer()
+	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }),false, []string{""})
+	s.Start(":9010")
+	c := local.NewClient(":9010")
+	sp := c.Spawn("dummy")
+	sp.Send(&core.Check{},"")
+	s.Stop()
+}

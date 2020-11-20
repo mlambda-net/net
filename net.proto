@@ -28,6 +28,9 @@ message Error {
   string message = 2;
 }
 
+message Done {
+}
+
 service Connector {
   rpc Call(Request) returns (Response) {}
   rpc Live(Check) returns (Status) {}

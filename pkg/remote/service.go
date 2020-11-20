@@ -139,6 +139,10 @@ func (s *service) exec(pid *actor.PID, message interface{}) (*core.Response, err
 		}, nil
 	}
 
+	if v == nil {
+		v = &core.Done{}
+	}
+
 	data, err := s.serialize.Serialize(v)
 	if err != nil {
 		return &core.Response{

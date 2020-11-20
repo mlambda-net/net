@@ -67,7 +67,7 @@ func (a *address) Future(message proto.Message, timeout time.Duration, token str
 }
 
 func (a *address) Send(message proto.Message, token string) {
-	_, e := a.Future(message, 5*time.Second, token).Result()
+	_, e := a.Future(message, 5*time.Minute, token).Result()
 	if e != nil {
 		log.Fatal(e)
 	}

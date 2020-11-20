@@ -128,7 +128,7 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 }
 
 func (s *service) exec(pid *actor.PID, message interface{}, headers map[string]string) (*core.Response, error) {
-	v, e := s.system.Root.RequestFuture(pid, message, 10*time.Second).Result()
+	v, e := s.system.Root.WithHeaders(headers).RequestFuture(pid, message, 10*time.Second).Result()
 	if e != nil {
 		return &core.Response{
 			Status:  http.StatusInternalServerError,

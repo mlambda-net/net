@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/mlambda-net/net/pkg/common"
+	"github.com/mlambda-net/net/pkg/remote/middelware"
 	"github.com/mlambda-net/net/pkg/security"
 	"log"
 	"net/http"
@@ -88,14 +89,7 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 		}, nil
 	}
 
-	if _, ok := s.pids[r.Kind]; !ok {
-		if prop, ok := s.props[r.Kind]; ok {
-			pid := s.system.Root.Spawn(prop)
-			s.pids[r.Kind] = pid
-		}
-	}
-
-	if pid, ok := s.pids[r.Kind]; ok {
+	if prop, ok := s.props[r.Kind]; ok {
 		secure := s.secure[r.Kind]
 		if secure.isAuth {
 			identity, err := security.NewIdentity(r.Token)
@@ -107,7 +101,7 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 			}
 
 			if identity.Authenticate() {
-				return s.exec(pid, message, identity.GetHeaders())
+				return s.exec(s.system.Root.Spawn(prop.WithReceiverMiddleware(middelware.Auth(identity.GetHeaders()))), message)
 			}
 
 			return &core.Response{
@@ -116,8 +110,10 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 			}, nil
 
 		} else {
-			return s.exec(pid, message, map[string]string{})
+			prop := s.props[r.Kind].WithReceiverMiddleware(middelware.Auth(map[string]string{}))
+			return s.exec(s.system.Root.Spawn(prop), message)
 		}
+
 	}
 
 	return &core.Response{
@@ -127,8 +123,8 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 
 }
 
-func (s *service) exec(pid *actor.PID, message interface{}, headers map[string]string) (*core.Response, error) {
-	v, e := s.system.Root.WithHeaders(headers).RequestFuture(pid, message, 10*time.Second).Result()
+func (s *service) exec(pid *actor.PID, message interface{}) (*core.Response, error) {
+	v, e := s.system.Root.RequestFuture(pid, message, 10*time.Second).Result()
 	if e != nil {
 		return &core.Response{
 			Status:  http.StatusInternalServerError,

@@ -50,8 +50,9 @@ func (a *api) Start() {
 	go func() {
 		r := mux.NewRouter()
 		s := health.NewHealthServer(a.health)
+		s.SetConfig(a.config)
 		s.Start(r)(a.options...)
-		r.Handle("/metrics", promhttp.Handler())
+		r.Handle(fmt.Sprintf("%s/metrics",a.config.App.Path) , promhttp.Handler())
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.health), r))
 		a.sem <- 1
 	}()

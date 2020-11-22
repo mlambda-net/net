@@ -7,6 +7,7 @@ type Configuration struct {
 		Name    string
 		Version string
 		Env 	string
+		Path  string
 	}
 	Metric struct {
 		Namespace string

@@ -5,7 +5,8 @@ import (
 	"github.com/mlambda-net/net/pkg/common"
 	"github.com/mlambda-net/net/pkg/core"
 	"google.golang.org/grpc"
-	"log"
+  "google.golang.org/grpc/health/grpc_health_v1"
+  "log"
 	"net"
 )
 
@@ -54,6 +55,10 @@ func (s *server) Start(address string) {
 					secure:    s.secure,
 					pids:      make(map[string]*actor.PID),
 					serialize: common.NewSerializer()})
+
+        healthService := NewHealthChecker()
+        grpc_health_v1.RegisterHealthServer(s.srv, healthService)
+
 				s.register = true
 			}
 			if err := s.srv.Serve(s.lis); err != nil {

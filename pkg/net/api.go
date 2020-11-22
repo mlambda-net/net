@@ -9,7 +9,9 @@ import (
 	"github.com/mlambda-net/net/pkg/net/middleware"
 	"github.com/mlambda-net/net/pkg/security"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"log"
+  "golang.org/x/net/http2"
+  "golang.org/x/net/http2/h2c"
+  "log"
 	"net/http"
 )
 
@@ -53,7 +55,7 @@ func (a *api) Start() {
 		s.SetConfig(a.config)
 		s.Start(r)(a.options...)
 		r.Handle(fmt.Sprintf("%s/metrics",a.config.App.Path) , promhttp.Handler())
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.health), r))
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.health), h2c.NewHandler(r, &http2.Server{}) ))
 		a.sem <- 1
 	}()
 

@@ -26,10 +26,20 @@ func (r request) Token(token string) Request {
 
 type Client interface {
 	Actor(name string) Request
+	Live() (*core.Status, error)
+	Health() (*core.Status, error)
 }
 
 type client struct {
 	client local.Client
+}
+
+func (c client) Health() (*core.Status, error) {
+	return c.client.Health()
+}
+
+func (c client) Live() (*core.Status, error) {
+	return c.client.Live()
 }
 
 func (c client) Actor(name string) Request {

@@ -168,3 +168,27 @@ func Test_Client_Send_Check(t *testing.T) {
 	sp.Send(&core.Check{},"")
 	s.Stop()
 }
+
+func Test_Client_Check(t *testing.T) {
+	s := remote.NewServer()
+	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }),false, []string{""})
+	s.Start(":9011")
+
+	c := net.NewClient("localhost", "9011")
+	status, err := c.Live()
+	assert.Nil(t, err)
+	assert.Equal(t, true, status.Success)
+	s.Stop()
+}
+
+func Test_Client_Health(t *testing.T) {
+	s := remote.NewServer()
+	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }),false, []string{""})
+	s.Start(":9011")
+
+	c := net.NewClient("localhost", "9011")
+	status, err := c.Health()
+	assert.Nil(t, err)
+	assert.Equal(t, true, status.Success)
+	s.Stop()
+}

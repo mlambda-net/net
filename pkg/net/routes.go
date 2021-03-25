@@ -10,6 +10,7 @@ import (
 
 type Route interface {
   AddRoute(name string, path string, isSecure bool, method string, handler func(w http.ResponseWriter, r *http.Request))
+  Add(func(router * mux.Router))
   GetRouter() *mux.Router
 }
 
@@ -24,6 +25,11 @@ type route struct {
 type router struct {
   routes []route
   config *metrics.Configuration
+  extend func(router *mux.Router)
+}
+
+func (r *router) Add(router func(router *mux.Router)) {
+  r.extend = router
 }
 
 func (r *router) GetRouter() *mux.Router {
@@ -38,11 +44,12 @@ func (r *router) GetRouter() *mux.Router {
       router.Handle(v.path,http.HandlerFunc(v.handler)).Methods(v.method)
     }
   }
+  if r.extend != nil {
+    r.extend(router)
+  }
+
   return router
 }
-
-
-
 
 func (r *router) AddRoute(name string, path string, isSecure bool, method string, handler func(w http.ResponseWriter, r *http.Request)) {
   r.routes = append(r.routes, route{

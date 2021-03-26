@@ -8,7 +8,6 @@ import (
 type Identity interface {
 	Authenticate() bool
 	GetHeaders() map[string]string
-
 }
 
 type identity struct {

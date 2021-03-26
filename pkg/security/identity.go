@@ -20,7 +20,7 @@ func (i identity) GetHeaders() map[string]string {
 }
 
 func (i identity) Authenticate() bool {
-	return i.claims.Get("authorize").(bool)
+	return i.claims.Get("sub") != ""
 }
 
 func NewIdentity(text string) (Identity, error)  {

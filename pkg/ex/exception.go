@@ -47,6 +47,6 @@ func Crash(msg string, err error) error  {
   }
 }
 
-func Exc(err error)  error {
+func Error(err error)  error {
   return Exception{error: err}
 }

@@ -23,9 +23,11 @@ func (r *resolve) Mono (m monad.Mono, onSuccess  func(a  types.Any) interface{} 
   if err != nil {
     switch _err := err.(type) {
     case ex.Friendly:
-      logrus.Info(_err.Fail().Error(), p.String())
+      logrus.Infoln(_err.Fail().Error(), p.String())
     case ex.Crashed:
-      logrus.Error(_err.Fail().Error(), p.String())
+      logrus.Errorln(_err.Fail().Error(), p.String())
+    case ex.Exception:
+      logrus.Debugln(_err.Error(), p.String())
     default:
       logrus.Error(_err.Error(), p.String())
     }

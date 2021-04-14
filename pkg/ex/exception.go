@@ -17,6 +17,14 @@ type Crashed struct {
   error error
 }
 
+type Exception struct {
+  error error
+}
+
+func (e Exception) Error() string  {
+  return e.Error()
+}
+
 func (c Crashed) Error() string {
   return c.msg
 }
@@ -37,4 +45,8 @@ func Crash(msg string, err error) error  {
     msg:   msg,
     error: err,
   }
+}
+
+func Exc(err error)  error {
+  return Exception{error: err}
 }

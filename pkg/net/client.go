@@ -61,7 +61,7 @@ func (r request) Request(data proto.Message) monad.Mono {
 
 	switch msg := f.(type) {
 	case *core.Error:
-		return monad.ToMono(fmt.Errorf("error: %d, message: %s", msg.Status, msg.Message))
+		return monad.ToMono(fmt.Errorf("message: %s, trace: %s", msg.Trace, msg.Message))
 	default:
 		return monad.ToMono(msg)
 	}

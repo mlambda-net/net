@@ -17,7 +17,7 @@ import (
 
 func Test_Client_Future_Success(t *testing.T) {
 	s := remote.NewServer()
-	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }),true, []string{""})
+	s.Register("dummy", actor.PropsFromProducer(func() actor.Actor { return &dummy{} }),true, nil)
 	s.Start(":9091")
 
 	c := net.NewClient("localhost", "9091")

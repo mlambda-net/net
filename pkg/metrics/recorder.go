@@ -24,7 +24,6 @@ type recorder struct {
 }
 
 func (r *recorder)  createHistogram(name string) {
-
 	buckets := []float64{50, 100, 250, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000}
 	histo := prometheus.NewHistogram(prometheus.HistogramOpts{
 		Namespace:   r.namespace,
@@ -41,7 +40,6 @@ func (r *recorder)  createHistogram(name string) {
 }
 
 func (r * recorder) createCounter(name string)  {
-
 	counter := prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace:   r.namespace,
 		Subsystem: r.subSystem,
@@ -62,9 +60,7 @@ func (r * recorder) createGauge(name string)  {
 		Name:      name,
 	})
 	r.gauge = gauge
-
-	_ = prometheus.Register(gauge)
-
+  _ = prometheus.Register(gauge)
 }
 
 func (r *recorder) Start() {

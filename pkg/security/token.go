@@ -1,7 +1,8 @@
 package security
 
 import (
-	"errors"
+  "encoding/json"
+  "errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"time"
@@ -14,20 +15,18 @@ type Token interface {
 
 type Claims interface {
 	Get(name string) interface{}
-	ToMap() map[string]string
+	ToString() string
 }
 
 type claims struct {
 	values jwt.MapClaims
 }
 
-func (c claims) ToMap() map[string]string {
-	maps := make(map[string]string)
-	for k, v := range c.values {
-		maps[k] = fmt.Sprintf("%v", v)
-	}
-	return maps
+func (c claims) ToString() string {
+  v, _ := json.Marshal(c.values)
+  return string(v)
 }
+
 
 func (c claims) Get(name string) interface{} {
 	return c.values[name]

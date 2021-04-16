@@ -74,53 +74,57 @@ type service struct {
 
 func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, error) {
 
-	defer func() {
-		if err := recover(); err != nil {
-			log.Println("panic occurred:", err)
-		}
-	}()
+  defer func() {
+    if err := recover(); err != nil {
+      log.Println("panic occurred:", err)
+    }
+  }()
 
-	message, err := s.serialize.Deserialize(r.Type, r.Payload)
-	if err != nil {
+  message, err := s.serialize.Deserialize(r.Type, r.Payload)
+  if err != nil {
 
-		return &core.Response{
-			Status:  500,
-			Message: err.Error(),
-		}, nil
-	}
+    return &core.Response{
+      Status:  500,
+      Message: err.Error(),
+    }, nil
+  }
 
-	if prop, ok := s.props[r.Kind]; ok {
-		secure := s.secure[r.Kind]
-		if secure.isAuth {
-			identity, err := security.NewIdentity(r.Token)
-			if err != nil {
-				return &core.Response{
-					Status:  http.StatusUnauthorized,
-					Message: err.Error(),
-				}, nil
-			}
+  if prop, ok := s.props[r.Kind]; ok {
+    secure := s.secure[r.Kind]
+    if secure.isAuth {
+      identity, err := security.NewIdentity(r.Token)
+      if err != nil {
+        return &core.Response{
+          Status:  http.StatusUnauthorized,
+          Message: err.Error(),
+        }, nil
+      }
 
-			if identity.Authenticate() {
-				return s.exec(s.system.Root.Spawn(prop.WithReceiverMiddleware(middelware.Auth(identity.GetHeaders()))), message)
-			}
+      if identity.Authenticate() {
+        if identity.HasRoles(secure.roles) {
+          headers := identity.GetHeaders()
+          return s.exec(s.system.Root.Spawn(prop.WithReceiverMiddleware(middelware.Auth(headers))), message)
+        } else {
+          return &core.Response{
+            Status:  http.StatusUnauthorized,
+            Message: "The user don't have access",
+          }, nil
+        }
+      }
+      return &core.Response{
+        Status:  http.StatusUnauthorized,
+        Message: "User is not authenticated",
+      }, nil
+    } else {
+      prop := s.props[r.Kind].WithReceiverMiddleware(middelware.Auth(""))
+      return s.exec(s.system.Root.Spawn(prop), message)
+    }
+  }
 
-			return &core.Response{
-				Status:  http.StatusUnauthorized,
-				Message: "User is not authenticated",
-			}, nil
-
-		} else {
-			prop := s.props[r.Kind].WithReceiverMiddleware(middelware.Auth(map[string]string{}))
-			return s.exec(s.system.Root.Spawn(prop), message)
-		}
-
-	}
-
-	return &core.Response{
-		Status:  http.StatusNotFound,
-		Message: "there is not actor with that kind",
-	}, nil
-
+  return &core.Response{
+    Status:  http.StatusNotFound,
+    Message: "there is not actor with that kind",
+  }, nil
 }
 
 func (s *service) exec(pid *actor.PID, message interface{}) (*core.Response, error) {
@@ -162,7 +166,6 @@ func (s* service) Live(_ context.Context, _ *core.Check) (*core.Status, error) {
 }
 
 func (s* service) Health(_ context.Context, _ *core.Check) (*core.Status, error)  {
-	
 	status := &Status{}
 	for _, f := range s.status {
 		f(status)

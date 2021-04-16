@@ -1,5 +1,7 @@
 package ex
 
+import "errors"
+
 type Friendly struct {
   msg string
   err error
@@ -49,4 +51,8 @@ func Crash(msg string, err error) error  {
 
 func Error(err error)  error {
   return Exception{error: err}
+}
+
+func ToError(err string) error  {
+  return Error(errors.New(err))
 }

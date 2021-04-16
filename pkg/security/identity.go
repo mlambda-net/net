@@ -1,6 +1,7 @@
 package security
 
 import (
+  "encoding/json"
   "fmt"
   "os"
   "strings"
@@ -8,20 +9,23 @@ import (
 
 type Identity interface {
 	Authenticate() bool
-	GetHeaders() string
   HasRoles(roles []string) bool
+  Serialize() string
+  GetUser() User
 }
 
 type identity struct {
 	claims Claims
 }
 
-func (i *identity) HasRoles(roles []string) bool {
+func (i *identity) Serialize() string {
+  return i.claims.ToString()
+}
 
+func (i *identity) HasRoles(roles []string) bool {
   if roles == nil {
     return true
   }
-
   c := i.claims.Get("roles")
   if c != nil {
     r := c.([]interface{})
@@ -36,13 +40,14 @@ func (i *identity) HasRoles(roles []string) bool {
       }
     }
   }
-
   return false
-
 }
 
-func (i *identity) GetHeaders() string {
-	return i.claims.ToString()
+func (i *identity) GetUser() User {
+  var user User
+  _ = json.Unmarshal([]byte(i.Serialize()), &user)
+
+  return user
 }
 
 func (i *identity) Authenticate() bool {

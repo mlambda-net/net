@@ -39,37 +39,36 @@ func (s *server) Register(kind string,producer *actor.Props, isAuthenticate bool
 }
 
 func (s *server) Start(address string) {
-	lis, err := net.Listen("tcp", address)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	} else {
-		s.lis = lis
-		s.srv = grpc.NewServer()
-		go func() {
+  go func() {
+    lis, err := net.Listen("tcp", address)
+    if err != nil {
+      log.Fatalf("failed to listen: %v", err)
+    } else {
+      s.lis = lis
+      s.srv = grpc.NewServer()
 
-			if !s.register {
-				core.RegisterConnectorServer(s.srv, &service{
-					system:       actor.NewActorSystem(),
-					status:    s.status,
-					props:     s.props,
-					secure:    s.secure,
-					pids:      make(map[string]*actor.PID),
-					serialize: common.NewSerializer()})
+      if !s.register {
+        core.RegisterConnectorServer(s.srv, &service{
+          system:    actor.NewActorSystem(),
+          status:    s.status,
+          props:     s.props,
+          secure:    s.secure,
+          pids:      make(map[string]*actor.PID),
+          serialize: common.NewSerializer()})
 
         healthService := NewHealthChecker()
         grpc_health_v1.RegisterHealthServer(s.srv, healthService)
 
-				s.register = true
-			}
-			if err := s.srv.Serve(s.lis); err != nil {
-				log.Fatalf("failed to serve: %v", err)
-			}
-		}()
-	}
+        s.register = true
+      }
+      if err := s.srv.Serve(s.lis); err != nil {
+        log.Fatalf("failed to serve: %v", err)
+      }
+    }
+  }()
 }
 
 func (s *server) Stop() {
-
 	if s.srv != nil {
 		s.srv.Stop()
 	}

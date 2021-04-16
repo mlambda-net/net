@@ -102,7 +102,7 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
 
       if identity.Authenticate() {
         if identity.HasRoles(secure.roles) {
-          headers := identity.GetHeaders()
+          headers := identity.Serialize()
           return s.exec(s.system.Root.Spawn(prop.WithReceiverMiddleware(middelware.Auth(headers))), message)
         } else {
           return &core.Response{

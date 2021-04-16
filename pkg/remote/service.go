@@ -43,7 +43,7 @@ func (s *Status) getText() string {
 	var sb strings.Builder
 	for _, s := range s.results {
 		if s.success {
-			sb.WriteString(fmt.Sprintf("%s is ok", s.name))
+			sb.WriteString(fmt.Sprintf("%s is ok ", s.name))
 		} else {
 			sb.WriteString(fmt.Sprintf("fail %s message: %s ", s.name, s.message))
 		}

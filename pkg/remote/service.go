@@ -41,12 +41,16 @@ func (s *Status) Add(success bool, name string, message string) {
 
 func (s *Status) getText() string {
 	var sb strings.Builder
-	for _, s := range s.results {
+  le := len(s.results)
+	for i, s := range s.results {
 		if s.success {
-			sb.WriteString(fmt.Sprintf("%s is ok ", s.name))
+			sb.WriteString(fmt.Sprintf("%s is ok", s.name))
 		} else {
-			sb.WriteString(fmt.Sprintf("fail %s message: %s ", s.name, s.message))
+			sb.WriteString(fmt.Sprintf("fail %s message: %s", s.name, s.message))
 		}
+		if i < le - 1 {
+		  sb.WriteString(", ")
+    }
 	}
 	return sb.String()
 }

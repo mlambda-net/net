@@ -62,7 +62,6 @@ func (r *resolve) Mono (m monad.Mono) Resolver {
         Trace:   p.String(),
       },
     }
-
   }
   return &resolver{
     response: resp,

@@ -71,13 +71,21 @@ func (r *resolve) Mono (m monad.Mono) Resolver {
 func (r *resolve) handleError(err error, trace string) {
   switch _err := err.(type) {
   case ex.Friendly:
-    logrus.Infoln(_err.Fail().Error(), trace)
+    logrus.WithFields(logrus.Fields{
+      "trace": trace,
+    }).Infoln(_err.Fail().Error(), trace)
   case ex.Crashed:
-    logrus.Errorln(_err.Fail().Error(), trace)
+    logrus.WithFields(logrus.Fields{
+      "trace": trace,
+    }).Errorln(_err.Fail().Error())
   case ex.Exception:
-    logrus.Warningln(_err.Error(), trace)
+    logrus.WithFields(logrus.Fields{
+      "trace": trace,
+    }).Warningln(_err.Error())
   default:
-    logrus.Error(_err.Error(), trace)
+    logrus.WithFields(logrus.Fields{
+      "trace": trace,
+    }).Error(_err.Error())
   }
 }
 

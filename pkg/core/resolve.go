@@ -1,6 +1,7 @@
 package core
 
 import (
+  "errors"
   "fmt"
   "github.com/google/uuid"
   types "github.com/mlambda-net/monads"
@@ -11,11 +12,17 @@ import (
 
 type Resolve interface {
   Mono (m monad.Mono) Resolver
+  Monos(ms []monad.Mono) Resolver
   Error(err error) Resolver
+  Maybe(m monad.Maybe) Resolver
+  Maybes(ms []monad.Maybe) Resolver
+  Fail(msg string) Resolver
 }
 
 type resolve struct {
 }
+
+
 
 type Resolver interface {
   Then(apply func(types.Any) types.Any) Resolver
@@ -38,6 +45,15 @@ func (r *resolver) Response() interface{} {
     return mr
   default:
     return r.bind(r.response)
+  }
+}
+
+func (r *resolve) Fail(msg string) Resolver  {
+  trace := uuid.New()
+  e := errors.New(msg)
+  r.handleError(e, trace.String())
+  return &resolver{
+    response: e,
   }
 }
 
@@ -69,7 +85,7 @@ func (r *resolve) Mono (m monad.Mono) Resolver {
   }
 }
 
-func (r *resolve) MonoArray(ms []monad.Mono) Resolver  {
+func (r *resolve) Monos(ms []monad.Mono) Resolver  {
   values := make([]interface{}, 0)
   errors := make([]error, 0)
   for _, m := range ms{
@@ -102,20 +118,7 @@ func (r *resolve) MonoArray(ms []monad.Mono) Resolver  {
   }
 }
 
-func (r *resolver) Maybe(m monad.Maybe)  Resolver {
-  switch m.(type) {
-  case monad.Just:
-    return &resolver{
-      response: m,
-    }
-  default:
-    return &resolver{
-      response: &Empty{},
-    }
-  }
-}
-
-func (r *resolver) Maybes(ms []monad.Maybe) Resolver {
+func (r *resolve) Maybes(ms []monad.Maybe) Resolver {
   values := make([]interface{}, 0)
   for _, m := range ms {
     switch ma := m.(type) {
@@ -133,7 +136,18 @@ func (r *resolver) Maybes(ms []monad.Maybe) Resolver {
   }
 }
 
-
+func (r *resolve) Maybe(m monad.Maybe) Resolver {
+  switch m.(type) {
+  case monad.Just:
+    return &resolver{
+      response: m,
+    }
+  default:
+    return &resolver{
+      response: &Empty{},
+    }
+  }
+}
 
 func (r *resolve) handleError(err error, trace string) {
   switch _err := err.(type) {

@@ -1,6 +1,6 @@
 module github.com/mlambda-net/net
 
-go 1.14
+go 1.16
 
 require (
 	github.com/AsynkronIT/protoactor-go v0.0.0-20201117200131-5ae73aa8b6fe

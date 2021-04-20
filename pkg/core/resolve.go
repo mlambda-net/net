@@ -22,8 +22,6 @@ type Resolve interface {
 type resolve struct {
 }
 
-
-
 type Resolver interface {
   Then(apply func(types.Any) types.Any) Resolver
   Response() interface{}
@@ -137,10 +135,10 @@ func (r *resolve) Maybes(ms []monad.Maybe) Resolver {
 }
 
 func (r *resolve) Maybe(m monad.Maybe) Resolver {
-  switch m.(type) {
+  switch v := m.(type) {
   case monad.Just:
     return &resolver{
-      response: m,
+      response: v.Value(),
     }
   default:
     return &resolver{

@@ -23,6 +23,10 @@ message Status {
   string message = 2;
 }
 
+message Empty {
+
+}
+
 message Error {
   string message = 1;
   string trace = 2;

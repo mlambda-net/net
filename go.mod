@@ -9,7 +9,7 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/mux v1.8.0
-	github.com/mlambda-net/monads v1.0.3
+	github.com/mlambda-net/monads v1.0.4
 	github.com/prometheus/client_golang v1.8.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.6.1

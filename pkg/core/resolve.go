@@ -1,6 +1,7 @@
 package core
 
 import (
+  "fmt"
   "github.com/google/uuid"
   types "github.com/mlambda-net/monads"
   "github.com/mlambda-net/monads/monad"
@@ -67,6 +68,72 @@ func (r *resolve) Mono (m monad.Mono) Resolver {
     response: resp,
   }
 }
+
+func (r *resolve) MonoArray(ms []monad.Mono) Resolver  {
+  values := make([]interface{}, 0)
+  errors := make([]error, 0)
+  for _, m := range ms{
+    res, e := m.Unwrap()
+    if e != nil {
+      errors = append(errors, e)
+    } else {
+      values = append(values, res)
+    }
+  }
+
+  if len(errors) > 0 {
+    trace := uuid.New()
+    msg := fmt.Sprintf("%v", errors)
+
+    logrus.WithFields(logrus.Fields{
+      "trace": trace,
+    }).Errorln(msg)
+
+    return &resolver{
+      response: &Error{
+        Message: msg,
+        Trace:  trace.String(),
+      },
+    }
+  } else {
+    return &resolver{
+      response: values,
+    }
+  }
+}
+
+func (r *resolver) Maybe(m monad.Maybe)  Resolver {
+  switch m.(type) {
+  case monad.Just:
+    return &resolver{
+      response: m,
+    }
+  default:
+    return &resolver{
+      response: &Empty{},
+    }
+  }
+}
+
+func (r *resolver) Maybes(ms []monad.Maybe) Resolver {
+  values := make([]interface{}, 0)
+  for _, m := range ms {
+    switch ma := m.(type) {
+    case monad.Just:
+      values = append(values, ma.Value())
+    }
+  }
+
+  if len(values) == 0 {
+    return &resolver{
+      response: &Empty{},
+    }
+  } else {
+    return &resolver{response: values}
+  }
+}
+
+
 
 func (r *resolve) handleError(err error, trace string) {
   switch _err := err.(type) {

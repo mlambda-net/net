@@ -46,7 +46,6 @@ func (a *api) Wait() {
 }
 
 func (a *api) Start() {
-
 	a.sem = make(chan int, 2)
 
 	go func() {

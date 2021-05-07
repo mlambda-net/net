@@ -103,11 +103,9 @@ func (s *service) Call(_ context.Context, r *core.Request) (*core.Response, erro
           Message: err.Error(),
         }, nil
       }
-
       if identity.Authenticate() {
         if identity.HasRoles(secure.roles) {
-          headers := identity.Serialize()
-          return s.exec(s.system.Root.Spawn(prop.WithReceiverMiddleware(middelware.Auth(headers))), message)
+          return s.exec(s.system.Root.Spawn(prop.WithReceiverMiddleware(middelware.Auth(r.Token))), message)
         } else {
           return &core.Response{
             Status:  http.StatusUnauthorized,

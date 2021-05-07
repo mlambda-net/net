@@ -5,7 +5,7 @@ import (
 	"github.com/mlambda-net/net/pkg/common"
 	"github.com/mlambda-net/net/pkg/core"
 	"google.golang.org/grpc"
-  	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
@@ -47,7 +47,6 @@ func (s *server) Start(address string) {
 		} else {
 			s.lis = lis
 			s.srv = grpc.NewServer()
-			reflection.Register(s.srv)
 			if !s.register {
 				core.RegisterConnectorServer(s.srv, &service{
 					system:    actor.NewActorSystem(),
@@ -60,6 +59,7 @@ func (s *server) Start(address string) {
 				grpc_health_v1.RegisterHealthServer(s.srv, healthService)
 				s.register = true
 			}
+			reflection.Register(s.srv)
 			if err := s.srv.Serve(s.lis); err != nil {
 				log.Fatalf("failed to serve: %v", err)
 			}

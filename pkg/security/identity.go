@@ -1,10 +1,9 @@
 package security
 
 import (
-  "encoding/json"
-  "fmt"
-  "os"
-  "strings"
+	"encoding/json"
+	"os"
+	"strings"
 )
 
 type Identity interface {
@@ -30,9 +29,7 @@ func (i *identity) HasRoles(roles []string) bool {
   if c != nil {
     r := c.([]interface{})
     for _, rs := range r {
-      k := rs.(map[string]interface{})
-      role := fmt.Sprintf("%s-%s", k["app"], k["name"])
-
+      role := rs.(string)
       for _, ro := range roles {
         if strings.ToLower(role) == strings.ToLower(ro) {
           return true

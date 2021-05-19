@@ -51,7 +51,10 @@ func (r *resolve) Fail(msg string) Resolver  {
   e := errors.New(msg)
   r.handleError(e, trace.String())
   return &resolver{
-    response: e,
+    response: &Error{
+      Message: e.Error(),
+      Trace:   trace.String(),
+    },
   }
 }
 

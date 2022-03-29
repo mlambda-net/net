@@ -6,7 +6,7 @@ require (
 	github.com/AsynkronIT/protoactor-go v0.0.0-20201117200131-5ae73aa8b6fe
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/etherlabsio/healthcheck v0.0.0-20191224061800-dd3d2fd8c3f6
-	github.com/gogo/protobuf v1.3.1
+	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/mux v1.8.0
 	github.com/mlambda-net/monads v1.0.4

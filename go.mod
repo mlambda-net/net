@@ -14,6 +14,6 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.6.1
 	github.com/throttled/throttled/v2 v2.7.1
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
+	golang.org/x/net v0.7.0
 	google.golang.org/grpc v1.33.0
 )
